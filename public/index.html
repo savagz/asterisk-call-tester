@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asterisk Call Tester - Prueba de Carga para Asterisk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        .form-control {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+            color: #fff;
+        }
+
+        .form-control:focus {
+            background-color: #2c2c2c;
+            color: #fff;
+            border-color: #00bcd4;
+            box-shadow: none;
+        }
+
+        .form-label {
+            color: #bbb;
+        }
+
+        .required::after {
+            content: " *";
+            color: #ff5252;
+        }
+
+        .section-card {
+            background-color: #1f1f1f;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            background-color: #00bcd4;
+            border: none;
+            color: #000;
+        }
+
+        .btn-secondary {
+            background-color: #4caf50;
+            border: none;
+        }
+
+        .btn-danger {
+            background-color: #f44336;
+            border: none;
+        }
+
+        .status-stopped {
+            color: #ff5252;
+        }
+
+        .status-running {
+            color: #4caf50;
+        }
+
+        .collapse-toggle {
+            font-size: 0.9rem;
+            color: #00bcd4;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container py-4">
+        <h1 class="text-center text-info mb-4">ASTERISK CALL TESTER</h1>
+        <h3 class="text-center text-info">Prueba de Carga para Asterisk</h3>
+
+        <form id="configForm">
+            <div class="row">
+                <!-- Columna 1: Configuración del Manager -->
+                <div class="col-md-4">
+                    <div class="section-card">
+                        <div class="card-title">
+                            <span>CONFIGURACION AMI</span>
+                            <span class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#managerConfig">[📖]</span>
+                        </div>
+                        <div id="managerConfig" class="collapse show mt-3">
+                            <div class="mb-3">
+                                <label for="managerHost" class="form-label required">Host del Servidor</label>
+                                <input type="text" class="form-control" id="managerHost" name="managerHost"
+                                    placeholder="localhost" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="managerPort" class="form-label required">Puerto</label>
+                                <input type="number" class="form-control" id="managerPort" name="managerPort"
+                                    placeholder="5038" value="5038" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="managerUser" class="form-label required">Usuario</label>
+                                <input type="text" class="form-control" id="managerUser" name="managerUser" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="managerPassword" class="form-label required">Contraseña</label>
+                                <input type="password" class="form-control" id="managerPassword" name="managerPassword"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna 2: Configuración de la Prueba -->
+                <div class="col-md-4">
+                    <div class="section-card">
+                        <div class="card-title">
+                            <span>CONFIGURACION LLAMADAS</span>
+                            <span class="collapse-toggle" data-bs-toggle="collapse" data-bs-target="#testConfig">[📖]</span>
+                        </div>
+                        <div id="testConfig" class="collapse show mt-3">
+                            <div class="mb-3">
+                                <label for="contexto" class="form-label required">Contexto</label>
+                                <input type="text" class="form-control" id="contexto" name="contexto" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="extension" class="form-label required">Extensión</label>
+                                <input type="text" class="form-control" id="extension" name="extension" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="prioridad" class="form-label required">Prioridad</label>
+                                <input type="text" class="form-control" id="prioridad" name="prioridad" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="channel" class="form-label required">Channel</label>
+                                <input type="text" class="form-control" id="channel" name="channel" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cantidadLlamadas" class="form-label required">Cantidad de Llamadas</label>
+                                <input type="number" class="form-control" id="cantidadLlamadas" name="cantidadLlamadas" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna 3: Estado de la prueba -->
+                <div class="col-md-4">
+                    <div class="section-card">
+                        <div class="card-title">ESTADO DE LA PRUEBA</div>
+                        <div class="mt-3">
+                            <p>Ejecución: <span id="statusText" class="status-stopped">Detenido</span></p>
+                            <p id="startTime" class="d-none">Inicio: <span class="form-label"></span></p>
+                            <p id="endTime" class="d-none">Fin: <span class="form-label"></span></p>
+                            <p id="duration" class="d-none">Duración: <span class="form-label"></span></p>
+                            <p>Llamadas configuradas: <span id="callCount" class="form-label">0</span></p>
+                            <p id="connectionStatus">Estado de conexión: <span class="form-label">Desconocido</span></p>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" id="btnSave" class="btn btn-primary">Guardar Configuración</button>
+                                <button type="button" id="btnStart" class="btn btn-secondary" disabled>Iniciar Prueba</button>
+                                <button type="button" id="btnStop" class="btn btn-danger" disabled>Detener Prueba</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="section-card">
+                    <div class="card-title">
+                        <div id="messageArea" class="d-none"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Variables globales
+        let isRunning = false;
+        let configSaved = false;
+
+        // Referencias a elementos DOM
+        const configForm = document.getElementById('configForm');
+        const btnSave = document.getElementById('btnSave');
+        const btnStart = document.getElementById('btnStart');
+        const btnStop = document.getElementById('btnStop');
+        const statusText = document.getElementById('statusText');
+        const startTimeElement = document.getElementById('startTime');
+        const endTimeElement = document.getElementById('endTime');
+        const durationElement = document.getElementById('duration');
+        const callCountElement = document.getElementById('callCount');
+        const connectionStatusElement = document.getElementById('connectionStatus');
+        const messageArea = document.getElementById('messageArea');
+
+        // Configurar comportamiento de plegado/desplegado
+        document.querySelectorAll('.collapse-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const targetId = toggle.getAttribute('data-target');
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement.classList.contains('collapsed')) {
+                    targetElement.classList.remove('collapsed');
+                    targetElement.style.maxHeight = targetElement.scrollHeight + 'px';
+                } else {
+                    targetElement.style.maxHeight = targetElement.scrollHeight + 'px';
+                    // Forzar reflow
+                    targetElement.offsetHeight;
+                    targetElement.classList.add('collapsed');
+                    targetElement.style.maxHeight = '0';
+                }
+            });
+        });
+
+        // Expandir secciones por defecto al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.panel-content').forEach(panel => {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+            });
+
+            // Cargar configuración
+            loadConfig();
+        });
+
+        // Event listeners
+        configForm.addEventListener('submit', saveConfig);
+        btnStart.addEventListener('click', startTest);
+        btnStop.addEventListener('click', stopTest);
+
+        // Verificar estado cada 20 segundos
+        setInterval(checkStatus, 20000);
+
+        // Función para cargar la configuración inicial
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/asterisk/config');
+                const data = await response.json();
+
+                // Llenar el formulario con los datos
+                document.getElementById('contexto').value = data.contexto || '';
+                document.getElementById('extension').value = data.extension || '';
+                document.getElementById('prioridad').value = data.prioridad || '';
+                document.getElementById('channel').value = data.channel || '';
+                document.getElementById('cantidadLlamadas').value = data.cantidadLlamadas || '';
+
+                // Llenar los datos del Manager (nuevos campos)
+                document.getElementById('managerHost').value = data.managerHost || 'localhost';
+                document.getElementById('managerPort').value = data.managerPort || '5038';
+                document.getElementById('managerUser').value = data.managerUser || '';
+                document.getElementById('managerPassword').value = data.managerPassword || '';
+
+                // Actualizar panel de estado
+                updateStatusPanel(data);
+
+                // Verificar si hay configuración guardada
+                if (data.contexto && data.extension && data.prioridad && data.channel && data.cantidadLlamadas &&
+                    data.managerHost && data.managerUser && data.managerPassword) {
+                    configSaved = true;
+                    updateButtonState();
+                }
+                showMessage('Configuración Cargada correctamente', 'success');
+            } catch (error) {
+                console.log(error);
+                showMessage('Error al cargar la configuración', 'error');
+            }
+        }
+
+        // Función para guardar la configuración
+        async function saveConfig(e) {
+            e.preventDefault();
+
+            // Validar el formulario
+            if (!validateForm()) {
+                return;
+            }
+
+            // Recopilar datos del formulario
+            const formData = {
+                contexto: document.getElementById('contexto').value,
+                extension: document.getElementById('extension').value,
+                prioridad: document.getElementById('prioridad').value,
+                channel: document.getElementById('channel').value,
+                cantidadLlamadas: document.getElementById('cantidadLlamadas').value,
+                // Nuevos campos de Manager
+                managerHost: document.getElementById('managerHost').value,
+                managerPort: document.getElementById('managerPort').value,
+                managerUser: document.getElementById('managerUser').value,
+                managerPassword: document.getElementById('managerPassword').value
+            };
+
+            try {
+                const response = await fetch('/api/asterisk/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Configuración guardada correctamente', 'success');
+                    callCountElement.textContent = formData.cantidadLlamadas;
+
+                    setTimeout(() => {
+                        // Verificar la conexión con el Manager
+                        checkManagerConnection();
+                    }, 1500);
+
+                    // Marcar como guardado y actualizar estado de los botones
+                    configSaved = true;
+                    updateButtonState();
+                } else {
+                    showMessage(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage('Error al guardar la configuración', 'error');
+            }
+        }
+
+        // Función para verificar la conexión con el Manager (nuevo)
+        async function checkManagerConnection() {
+            try {
+                const response = await fetch('/api/asterisk/check-connection', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                connectionStatusElement.querySelector('span').textContent = data.connected ? 'Conectado' : 'Error de conexión';
+                connectionStatusElement.querySelector('span').style.color = data.connected ? '#4CAF50' : '#f44336';
+
+                if (!data.connected && data.error) {
+                    showMessage(`Error de conexión: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                connectionStatusElement.querySelector('span').textContent = 'Error de conexión';
+                connectionStatusElement.querySelector('span').style.color = '#f44336';
+                showMessage('Error al verificar la conexión con Asterisk', 'error');
+            }
+        }
+
+        // Función para iniciar la prueba
+        async function startTest() {
+            try {
+                // Deshabilitar botones para evitar múltiples clicks
+                disableButtons(true, false);
+
+                const response = await fetch('/api/asterisk/start', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    isRunning = true;
+                    showMessage('Prueba iniciada correctamente', 'success');
+                    updateUIRunningState(true, new Date(data.iniciado));
+                } else {
+                    showMessage(`Error: ${data.error}`, 'error');
+                    updateButtonState();
+                }
+            } catch (error) {
+                showMessage('Error al iniciar la prueba', 'error');
+                updateButtonState();
+            }
+        }
+
+        // Función para detener la prueba
+        async function stopTest() {
+            try {
+                // Deshabilitar botones para evitar múltiples clicks
+                disableButtons(false, true);
+
+                const response = await fetch('/api/asterisk/stop', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    isRunning = false;
+                    showMessage('Prueba detenida correctamente', 'success');
+                    updateUIRunningState(false, new Date(data.inicio), new Date(data.fin), data.duracion);
+                } else {
+                    showMessage(`Error: ${data.error}`, 'error');
+                    updateButtonState();
+                }
+            } catch (error) {
+                showMessage('Error al detener la prueba', 'error');
+                updateButtonState();
+            }
+        }
+
+        // Función para verificar el estado actual
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/asterisk/status');
+                const data = await response.json();
+
+                // Verificar si hay configuración guardada
+                if (data.cantidadLlamadas > 0) {
+                    configSaved = true;
+                }
+
+                updateStatusPanel(data);
+                updateButtonState();
+
+                // Actualizar estado de conexión
+                if (data.managerConnected !== undefined) {
+                    connectionStatusElement.querySelector('span').textContent =
+                        data.managerConnected ? 'Conectado' : 'Desconectado';
+                    connectionStatusElement.querySelector('span').style.color =
+                        data.managerConnected ? '#4CAF50' : '#f44336';
+                }
+            } catch (error) {
+                console.error('Error al verificar estado:', error);
+            }
+        }
+
+        // Función para actualizar el panel de estado
+        function updateStatusPanel(data) {
+            callCountElement.textContent = data.cantidadLlamadas || '0';
+
+            if (data.ejecutando) {
+                updateUIRunningState(true, new Date(data.tiempoInicio));
+            } else if (data.tiempoInicio && data.tiempoFin) {
+                const duracion = (new Date(data.tiempoFin) - new Date(data.tiempoInicio)) / 1000 + ' segundos';
+                updateUIRunningState(false, new Date(data.tiempoInicio), new Date(data.tiempoFin), duracion);
+            }
+        }
+
+        // Función para actualizar la UI según el estado de ejecución
+        function updateUIRunningState(running, startTime, endTime, duration) {
+            isRunning = running;
+
+            if (running) {
+                statusText.textContent = 'En ejecución';
+                statusText.className = 'status-running';
+
+                startTimeElement.classList.remove('d-none');
+                startTimeElement.querySelector('span').textContent = formatDate(startTime);
+
+                endTimeElement.classList.add('d-none');
+                durationElement.classList.add('d-none');
+            } else {
+                statusText.textContent = 'Detenido';
+                statusText.className = 'status-stopped';
+
+                if (startTime) {
+                    startTimeElement.classList.remove('d-none');
+                    startTimeElement.querySelector('span').textContent = formatDate(startTime);
+
+                    if (endTime) {
+                        endTimeElement.classList.remove('d-none');
+                        endTimeElement.querySelector('span').textContent = formatDate(endTime);
+
+                        durationElement.classList.remove('d-none');
+                        durationElement.querySelector('span').textContent = duration;
+                    }
+                }
+            }
+
+            updateButtonState();
+        }
+
+        // Función para actualizar el estado de los botones
+        function updateButtonState() {
+            if (isRunning) {
+                disableButtons(true, false);
+            } else {
+                disableButtons(!configSaved, true);
+            }
+        }
+
+        // Función para deshabilitar botones
+        function disableButtons(startDisabled, stopDisabled) {
+            btnStart.disabled = startDisabled;
+            btnStop.disabled = stopDisabled;
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type) {
+            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+            messageArea.classList.remove('d-none');
+
+            setTimeout(() => {
+                messageArea.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Función para validar el formulario
+        function validateForm() {
+            let isValid = true;
+            const requiredFields = document.querySelectorAll('[required]');
+
+            // Eliminar mensajes de error anteriores
+            document.querySelectorAll('.error').forEach(el => el.remove());
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+
+                    // Crear y añadir mensaje de error
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'error';
+                    errorMessage.textContent = 'Este campo es obligatorio';
+                    field.parentElement.appendChild(errorMessage);
+                }
+            });
+
+            return isValid;
+        }
+
+        // Función para formatear fechas
+        function formatDate(date) {
+            return date.toLocaleString();
+        }
+    </script>
+</body>
+
+</html>
