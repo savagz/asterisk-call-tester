@@ -1,0 +1,17 @@
+{
+  "contexto": "INFO",
+  "extension": "s",
+  "prioridad": "1",
+  "channel": "IAX2/TRUNK/777",
+  "cantidadLlamadas": 1,
+  "managerHost": "localhost",
+  "managerPort": 5038,
+  "managerUser": "admin",
+  "managerPassword": "q1w2e3r4t5",
+  "ejecutando": false,
+  "tiempoInicio": null,
+  "tiempoFin": null,
+  "llamadasRealizadas": 0,
+  "llamadasExitosas": 0,
+  "llamadasFallidas": 0
+}

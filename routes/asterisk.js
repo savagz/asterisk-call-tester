@@ -4,6 +4,10 @@ const router = express.Router();
 // Importar AMIService
 const AMIService = require('../services/amiservice');
 
+const fs = require('fs');
+const path = require('path');
+const FILE_PATH = path.join(__dirname, 'config.json');
+
 // Configuración inicial para el servicio AMI (se actualizará con los valores del formulario)
 let amiConfig = {
     host: process.env.AMI_HOST || 'localhost',
@@ -46,6 +50,11 @@ let config = {
     llamadasExitosas: 0,
     llamadasFallidas: 0
 };
+const config_data = readFromJSON();
+if(config_data && config_data.contexto){
+    console.debug('Loading JSON Config');
+    config = config_data;
+}
 
 // Variable para controlar el intervalo de llamadas
 let callInterval = null;
@@ -98,6 +107,7 @@ router.post('/config', (req, res) => {
             llamadasExitosas: 0,
             llamadasFallidas: 0
         };
+        saveToJSON(config);
 
         // Si la configuración del AMI cambió, reiniciar la conexión
         if (amiChanged) {
@@ -330,6 +340,32 @@ function detenerLlamadasAsterisk() {
     
     logger.debug(`Prueba completada: ${config.llamadasRealizadas} llamadas realizadas`);
     logger.debug(`Exitosas: ${config.llamadasExitosas}, Fallidas: ${config.llamadasFallidas}`);
+}
+
+
+// Método para guardar un objeto en el archivo JSON
+function saveToJSON(obj) {
+  try {
+    fs.writeFileSync(FILE_PATH, JSON.stringify(obj, null, 2), 'utf-8');
+    console.log('✅ Datos guardados correctamente.');
+  } catch (error) {
+    console.error('❌ Error al guardar los datos:', error);
+  }
+}
+
+// Método para leer un objeto desde el archivo JSON
+function readFromJSON() {
+  try {
+    if (!fs.existsSync(FILE_PATH)) {
+      console.warn('⚠️ Archivo no encontrado. Retornando objeto vacío.');
+      return {};
+    }
+    const data = fs.readFileSync(FILE_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error('❌ Error al leer los datos:', error);
+    return {};
+  }
 }
 
 module.exports = router;
