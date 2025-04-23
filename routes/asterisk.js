@@ -8,12 +8,36 @@ const fs = require('fs');
 const path = require('path');
 const FILE_PATH = path.join(__dirname, 'config.json');
 
+// Variable para almacenar la configuración
+let config = {
+    contexto: '',
+    extension: '',
+    prioridad: '',
+    channel: '',
+    cantidadLlamadas: 0,
+    managerHost: 'localhost',
+    managerPort: '5038',
+    managerUser: '',
+    managerPassword: '',
+    ejecutando: false,
+    tiempoInicio: null,
+    tiempoFin: null,
+    llamadasRealizadas: 0,
+    llamadasExitosas: 0,
+    llamadasFallidas: 0
+};
+const config_data = readFromJSON();
+if(config_data && config_data.contexto){
+    console.debug('Loading JSON Config');
+    config = config_data;
+}
+
 // Configuración inicial para el servicio AMI (se actualizará con los valores del formulario)
 let amiConfig = {
-    host: process.env.AMI_HOST || 'localhost',
-    port: process.env.AMI_PORT || 5038,
-    login: process.env.AMI_LOGIN || 'admin',
-    password: process.env.AMI_PASSWORD || 'password'
+    host: config.managerHost || 'localhost',
+    port: config.managerPort || 5038,
+    login: config.managerUser || 'admin',
+    password: config.managerPassword || 'password'
 };
 
 // Crear logger básico (puedes reemplazarlo con tu propio sistema de logging)
@@ -30,30 +54,6 @@ try {
     amiService.start();
 } catch (error) {
     logger.error(`Error al iniciar AMI: ${error.message}`);
-}
-
-// Variable para almacenar la configuración
-let config = {
-    contexto: '',
-    extension: '',
-    prioridad: '',
-    channel: '',
-    cantidadLlamadas: 0,
-    managerHost: amiConfig.host,
-    managerPort: amiConfig.port,
-    managerUser: amiConfig.login,
-    managerPassword: amiConfig.password,
-    ejecutando: false,
-    tiempoInicio: null,
-    tiempoFin: null,
-    llamadasRealizadas: 0,
-    llamadasExitosas: 0,
-    llamadasFallidas: 0
-};
-const config_data = readFromJSON();
-if(config_data && config_data.contexto){
-    console.debug('Loading JSON Config');
-    config = config_data;
 }
 
 // Variable para controlar el intervalo de llamadas
